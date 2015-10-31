@@ -98,6 +98,8 @@ var Schema= mongoose.Schema;
 var ObjectId=Schema.ObjectId;
 // create model user from the Schema
 var User=mongoose.model('User',new Schema({
+
+    // set by database system
     id : ObjectId,
     // set by user
     name : String,
@@ -115,6 +117,32 @@ var User=mongoose.model('User',new Schema({
      // set automatically
     createdOn: {type:Date,default:Date.now()},
     modifiedOn:{type:Date,default:Date.now()}
+
+}));
+var feedbackModel =mongoose.model('Feedback', new Schema({
+  // set by database system
+  id : ObjectId,
+  // set automatically to identify the user
+  registrationNumber:{type:String},
+  email:{type:String},
+  // set by user feedback
+  studentFeedback:{
+  knowledgeTeacher:String,
+  communicationSkill:String,
+  commitment:String,
+  interestGenerated:String,
+  integrateCourseMaterial:String,
+  integrateContent:String,
+  accessibility:String,
+  integrateDesign:String,
+  provisionTime:String
+
+
+},
+  // set automatically to identify the feedback
+  createdOn: {type:Date,default:Date.now()},
+  modifiedOn:{type:Date,default:Date.now()}
+
 
 }));
 
@@ -304,6 +332,9 @@ app.post('/signin', function(req,res){
                 &&(user.validStudent===true))  {
 
                 req.session.user=user.registrationNumber;
+                req.session.userEmail=user.email;
+                console.log('logging email of user');
+                console.log(req.session.userEmail);
                 res.redirect('/feedback');
                 console.log('login successfull');
 
@@ -326,7 +357,7 @@ app.get('/return-home',function(req,res){
 
 
 //==============================================================================
-//                            FEEDBACK FORM                                   //
+//                            FEEDBACK FORM DISPLAY                           //
 //==============================================================================
 
 
@@ -359,6 +390,49 @@ req.session.user=undefined;
 console.log("destroying any creepy user");
 }
 });
+
+
+//==============================================================================
+//                         FEEDBACK FORMM POST                                //
+//==============================================================================
+
+// EXECUTED : IF the user fills up the feedbackForm and hits submit
+app.post('/feedback',function(req,res){
+var feedbackSubmitted = new feedbackModel({
+  // since the registrationNumber is saved as the session user during signin
+  registrationNumber:req.session.user,
+  // since the email is saved as req.session.userEmail during signin
+  email:req.session.userEmail,
+  studentFeedback:{
+  knowledgeTeacher:req.body.knowledgeTeacher,
+  communicationSkill:req.body.communicationSkill,
+  commitment:req.body.commitment,
+  interestGenerated:req.body.interestGenerated,
+  integrateCourseMaterial:req.body.integrateCourseMaterial,
+  integrateContent:req.body.integrateContent,
+  accessibility:req.body.accessibility,
+  integrateDesign:req.body.integrateDesign,
+  provisionTime:req.body.provisionTime
+  }
+});
+
+
+  feedbackSubmitted.save(function (err) {
+    if (err) {
+      console.log('Could not save userFeedback');
+
+    }
+    else {
+      console.log('User feedback submission successfull');
+      res.redirect('/logout');
+    }
+  });
+
+
+});
+
+
+
 
 
 //==============================================================================
